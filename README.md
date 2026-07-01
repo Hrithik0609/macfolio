@@ -35,3 +35,5 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # macfolio
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/8c69adc8-38f6-4c93-80c2-4c51e0d9106f/deploy-status)](https://app.netlify.com/projects/hrithik-macfolio/deploys)
