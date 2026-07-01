@@ -7,10 +7,11 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWindowManager, type AppId } from "@/lib/store/windowManager";
 import { APPS, DOCK_ORDER } from "@/lib/apps";
 import { useViewport } from "@/lib/useViewport";
+import { DOCK_BASE, useSettings } from "@/lib/store/settings";
 
 function DockItem({
   appId,
@@ -49,7 +50,7 @@ function DockItem({
   }
 
   return (
-    <div className="group relative flex flex-col items-center">
+    <div className="group relative flex items-end justify-center">
       <span className="pointer-events-none absolute -top-9 hidden whitespace-nowrap rounded-md bg-black/75 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 sm:block">
         {def.title}
       </span>
@@ -63,8 +64,9 @@ function DockItem({
       >
         {def.icon}
       </motion.button>
+      {/* Running indicator — absolute so it doesn't push the icon upward. */}
       <span
-        className={`mt-1 h-1 w-1 rounded-full bg-white/80 transition-opacity ${
+        className={`pointer-events-none absolute -bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-white/80 transition-opacity ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -74,18 +76,45 @@ function DockItem({
 
 export function Dock() {
   const mouseX = useMotionValue(Number.POSITIVE_INFINITY);
-  const { w } = useViewport();
+  const { w, h } = useViewport();
+  const { dockSize, dockAutoHide, dockMagnify } = useSettings();
   const mobile = w < 480;
-  const base = mobile ? 42 : 56;
-  const max = mobile ? 54 : 92;
+
+  const base = mobile ? Math.min(44, DOCK_BASE[dockSize]) : DOCK_BASE[dockSize];
+  // When magnification is off, the magnified size equals the base (no zoom).
+  const max = dockMagnify ? Math.round(base * 1.6) : base;
+
+  // Auto-hide: dock slides below the screen and reveals when the pointer nears
+  // the bottom edge (or while hovering it).
+  const [revealed, setRevealed] = useState(false);
+  const visible = !dockAutoHide || revealed;
+  const hideOffset = base + 40;
+
+  useEffect(() => {
+    if (!dockAutoHide) return;
+    const onMove = (e: PointerEvent) => {
+      if (e.clientY >= h - (hideOffset + 24)) setRevealed(true);
+      else if (e.clientY < h - (hideOffset + 90)) setRevealed(false);
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [dockAutoHide, h, hideOffset]);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-2 z-9000 flex justify-center px-2">
+    <div
+      className="pointer-events-none fixed inset-x-0 bottom-2 z-9000 flex justify-center px-2 transition-transform duration-300 ease-out"
+      style={{ transform: visible ? "translateY(0)" : `translateY(${hideOffset}px)` }}
+    >
       <motion.div
+        onMouseEnter={() => dockAutoHide && setRevealed(true)}
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Number.POSITIVE_INFINITY)}
-        className={`glass-dock pointer-events-auto flex max-w-[96vw] items-end rounded-2xl border border-white/15 shadow-2xl shadow-black/40 ${
-          mobile ? "gap-1.5 px-2 pb-1.5 pt-2" : "gap-2.5 px-3 pb-2 pt-2.5"
+        // Fixed height so magnified icons overflow upward instead of resizing
+        // the glass panel (which caused the hover glitch). Equal top/bottom
+        // margin around the base icon (2 × pb).
+        style={{ height: base + 16 }}
+        className={`glass-dock pointer-events-auto flex max-w-[96vw] items-end rounded-2xl border border-white/15 pb-2 shadow-2xl shadow-black/40 ${
+          mobile ? "gap-1.5 px-2" : "gap-2.5 px-3"
         }`}
       >
         {DOCK_ORDER.map((id) => (

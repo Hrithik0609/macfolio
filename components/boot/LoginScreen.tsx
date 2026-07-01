@@ -3,12 +3,22 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { profile } from "@/lib/data/profile";
-import { wallpaperStyle } from "@/lib/wallpaper";
+import { wallpaperById, wallpaperStyleFor } from "@/lib/wallpaper";
+import { LOCK_WALLPAPER_KEY } from "@/lib/store/settings";
 
 export function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
   const [password, setPassword] = useState("");
   const [shake, setShake] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
+
+  // Read the chosen lock-screen wallpaper directly (no provider in this phase).
+  const [lockStyle] = useState(() => {
+    const id =
+      typeof window !== "undefined"
+        ? localStorage.getItem(LOCK_WALLPAPER_KEY)
+        : null;
+    return wallpaperStyleFor(wallpaperById(id ?? "").photo);
+  });
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setNow(new Date()));
@@ -38,7 +48,7 @@ export function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
   return (
     <div
       className="absolute inset-0 z-10 flex flex-col items-center justify-center"
-      style={wallpaperStyle}
+      style={lockStyle}
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
 

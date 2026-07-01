@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WALLPAPER_URL } from "@/lib/wallpaper";
+import { wallpaperById, wallpaperUrl } from "@/lib/wallpaper";
+import { LOCK_WALLPAPER_KEY } from "@/lib/store/settings";
 
 const FILL_MS = 2400; // bar animates 0 -> 100% over this
 const HOLD_MS = 450; // brief hold on a full bar before advancing
@@ -18,9 +19,10 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   const [fill, setFill] = useState(false);
 
   useEffect(() => {
-    // Preload the wallpaper so login shows the photo instantly.
+    // Preload the chosen lock wallpaper so login shows the photo instantly.
+    const lockId = localStorage.getItem(LOCK_WALLPAPER_KEY) ?? "";
     const img = new Image();
-    img.src = WALLPAPER_URL;
+    img.src = wallpaperUrl(wallpaperById(lockId).photo);
 
     // Kick the CSS width transition on the next frame so it animates smoothly.
     const raf = requestAnimationFrame(() => setFill(true));
