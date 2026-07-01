@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-ui), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Traffic-light colors */
+  --color-mac-close: #ff5f57;
+  --color-mac-min: #febc2e;
+  --color-mac-max: #28c840;
+
+  /* macOS accent (system blue) */
+  --color-mac-accent: #0a84ff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #1a1a1c;
+  --foreground: #f5f5f7;
+
+  /* Glass surfaces */
+  --glass-bar: rgba(40, 40, 44, 0.55);
+  --glass-window: rgba(34, 34, 38, 0.78);
+  --glass-window-head: rgba(52, 52, 58, 0.85);
+  --glass-dock: rgba(60, 60, 66, 0.42);
+  --hairline: rgba(255, 255, 255, 0.1);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Wallpaper is applied via inline style (see lib/wallpaper.ts) so the
+   high-res photo + gradient fallback never depend on class compilation. */
+
+/* ---- Glass utilities ---- */
+.glass-bar {
+  background: var(--glass-bar);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+}
+.glass-window {
+  background: var(--glass-window);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+}
+.glass-dock {
+  background: var(--glass-dock);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+}
+
+/* ---- Thin mac-style scrollbars ---- */
+.mac-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+.mac-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.mac-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.mac-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+  background-clip: padding-box;
+}
+.mac-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Prevent text selection while dragging windows */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
 }
